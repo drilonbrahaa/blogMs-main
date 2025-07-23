@@ -1,73 +1,48 @@
 package com.example.blogMs.controllers;
 
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.blogMs.entities.User;
-import com.example.blogMs.enums.Role;
 import com.example.blogMs.payload.JwtResponse;
 import com.example.blogMs.payload.LoginRequest;
 import com.example.blogMs.payload.SignupRequest;
-import com.example.blogMs.repositories.UserRepository;
-import com.example.blogMs.security.JwtUtil;
+import com.example.blogMs.services.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    AuthenticationManager authenticationManager;
-    
-    @Autowired
-    UserRepository userRepository;
-    
-    @Autowired
-    PasswordEncoder encoder;
-    
-    @Autowired
-    JwtUtil jwtUtil;
+    private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
     
     @PostMapping("/signin")
-    public JwtResponse authenticateUser(@RequestBody LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-          new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-          
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtil.generateJwtToken(loginRequest.getUsername());
-        
-        String role = authentication.getAuthorities().stream()
-            .map(item -> item.getAuthority().toUpperCase())
-            .collect(Collectors.joining(","));
-        
-        return new JwtResponse(jwt, loginRequest.getUsername(), role);
+    public ResponseEntity<JwtResponse> authenticateUser(@RequestBody LoginRequest loginRequest) {
+        try {
+            JwtResponse jwtResponse = authService.authenticateUser(loginRequest);
+            return ResponseEntity.ok(jwtResponse);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
     
     @PostMapping("/signup")
-    public String registerUser(@RequestBody SignupRequest signUpRequest) {
-        if(userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return "Error: Username is already taken!";
+    public ResponseEntity<HttpStatus> registerUser(@RequestBody SignupRequest signUpRequest) {
+        try {
+            boolean isRegistered = authService.registerUser(signUpRequest);
+            if (isRegistered) {
+                return ResponseEntity.status(HttpStatus.CREATED).build();
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(HttpStatus.BAD_REQUEST);
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(HttpStatus.BAD_REQUEST);
         }
-        
-        User user = new User();
-        user.setUsername(signUpRequest.getUsername());
-        user.setPassword(encoder.encode(signUpRequest.getPassword()));
-        switch (signUpRequest.getRole().toUpperCase()) {
-            case "ADMIN" -> user.setRole(Role.ADMIN);
-            case "AUTHOR" -> user.setRole(Role.AUTHOR);
-            default -> user.setRole(Role.READER);
-        }
-
-        userRepository.save(user);
-        return "User registered successfully!";
     }
 }

@@ -1,9 +1,9 @@
 package com.example.blogMs.controllers;
 
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,59 +15,52 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.blogMs.entities.Comment;
-import com.example.blogMs.entities.Post;
-import com.example.blogMs.entities.User;
-import com.example.blogMs.repositories.CommentRepository;
-import com.example.blogMs.repositories.PostRepository;
-import com.example.blogMs.repositories.UserRepository;
+import com.example.blogMs.services.CommentService;
 
 @RestController
 @RequestMapping("/api/comments")
 public class CommentController {
 
-    @Autowired
-    CommentRepository commentRepository;
-    
-    @Autowired
-    PostRepository postRepository;
-    
-    @Autowired
-    UserRepository userRepository;
-    
-    @GetMapping("/post/{postId}")
-    public List<Comment> getCommentsByPost(@PathVariable Long postId) {
-        return commentRepository.findByPostId(postId);
+    private final CommentService commentService;
+
+    public CommentController(CommentService commentService) {
+        this.commentService = commentService;
     }
     
     @PostMapping("/post/{postId}")
-    public Comment addComment(@PathVariable Long postId, @RequestParam String username, @RequestBody Comment comment) {
-        Optional<Post> post = postRepository.findById(postId);
-        Optional<User> user = userRepository.findByUsername(username);
-        if(!post.isPresent() || !user.isPresent()) {
-            throw new RuntimeException("Post or User not found");
+    public ResponseEntity<Comment> addComment(@PathVariable Long postId, @RequestParam String username, @RequestBody Comment comment) {
+        try {
+            Comment createdComment = commentService.addComment(postId, username, comment);
+            return ResponseEntity.status(201).body(createdComment);
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
-        if(comment.getContent() == null || comment.getContent().isEmpty()) {
-            throw new RuntimeException("Error: Comment content cannot be empty!");
-        }
-        comment.setPost(post.get());
-        comment.setUser(user.get());
-        return commentRepository.save(comment);
+    }
+
+    @GetMapping("/post/{postId}")
+    public ResponseEntity<List<Comment>> getCommentsByPost(@PathVariable Long postId) {
+        List<Comment> comments = commentService.getCommentsByPost(postId);
+        return ResponseEntity.ok(comments);
     }
     
     @PutMapping("/{commentId}")
-    public Comment editComment(@PathVariable Long commentId, @RequestBody Comment comment) {
-        Comment editedComment = commentRepository.findById(commentId).orElseThrow(() -> new RuntimeException("Comment not found"));
-        if(comment.getContent() == null || comment.getContent().isEmpty()) {
-            throw new RuntimeException("Error: Comment content cannot be empty!");
-        } else {
-            editedComment.setContent(comment.getContent());
+    public ResponseEntity<Comment> editComment(@PathVariable Long commentId, @RequestBody Comment comment) {
+        try {
+            Comment updatedComment = commentService.editComment(commentId, comment);
+            return ResponseEntity.ok(updatedComment);
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
-        return commentRepository.save(editedComment);
     }
     
     @DeleteMapping("/{commentId}")
-    public String deleteComment(@PathVariable Long commentId) {
-        commentRepository.deleteById(commentId);
-        return "Comment deleted successfully";
+    public ResponseEntity<HttpStatus> deleteComment(@PathVariable Long commentId) {
+        if (commentService.deleteComment(commentId)) {
+            return ResponseEntity.ok(HttpStatus.NO_CONTENT);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 }
