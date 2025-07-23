@@ -1,5 +1,6 @@
 package com.example.blogMs.services;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.blogMs.entities.Post;
 import com.example.blogMs.entities.User;
+import com.example.blogMs.enums.Category;
+import com.example.blogMs.enums.Tag;
 import com.example.blogMs.repositories.PostRepository;
 import com.example.blogMs.repositories.UserRepository;
 
@@ -81,6 +84,28 @@ public class PostService {
 
     public List<Post> searchPosts(String keyword) {
         return postRepository.findByTitleContaining(keyword);
+    }
+
+    public List<Post> filterByCategory(Category category) {
+        List<Post> posts = postRepository.findAll();
+        List<Post> postsByCategory = new ArrayList<>();
+        for (Post post : posts) {
+            if (post.getCategories().contains(category)) {
+                postsByCategory.add(post);
+            }
+        }
+        return postsByCategory;
+    }
+
+    public List<Post> filterByTag(Tag tag) {
+        List<Post> posts = postRepository.findAll();
+        List<Post> postsByTag = new ArrayList<>();
+        for (Post post : posts) {
+            if (post.getTags().contains(tag)) {
+                postsByTag.add(post);
+            }
+        }
+        return postsByTag;
     }
         
 }
