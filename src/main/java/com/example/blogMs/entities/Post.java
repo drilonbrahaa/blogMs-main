@@ -47,9 +47,29 @@ public class Post {
     public void setAuthor(User author) { this.author = author; }
 
     public Set<Category> getCategories() { return categories; }
-    public void setCategories(Set<Category> categories) { this.categories = categories; }
+    public void setCategories(Set<Category> categories) {
+        if (this.categories == null) {
+            this.categories = categories;
+        } else {
+            for (Category category : categories) {
+                if (category != null) {
+                    this.categories.add(category);
+                } 
+            }
+        } 
+    }
 
     public Set<Tag> getTags() { return tags; }
-    public void setTags(Set<Tag> tags) { this.tags = tags; }
+    public void setTags(Set<Tag> tags) {
+        if (this.tags == null) {
+            this.tags = tags;
+        } else {
+            for (Tag tag : tags) {
+                if (tag != null) {
+                    this.tags.add(tag);
+                }
+            }   
+        }
+    }
 
 }
