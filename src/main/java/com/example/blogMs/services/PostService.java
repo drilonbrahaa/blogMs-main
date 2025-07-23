@@ -1,5 +1,6 @@
 package com.example.blogMs.services;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,26 +29,42 @@ public class PostService {
         if(!user.isPresent()) {
             throw new RuntimeException("User not found");
         }
-        if (post.getTitle() == null || post.getTitle().isEmpty() || post.getContent() == null || post.getContent().isEmpty()) {
+        if (post.getTitle() == null || post.getTitle().trim().isEmpty() || post.getContent() == null || post.getContent().trim().isEmpty()) {
             throw new RuntimeException("Error: Title and content cannot be empty!");
         }
         post.setAuthor(user.get());
+        if (post.getCategories() == null) {
+            post.setCategories(new HashSet<>());
+        }
+        if (post.getTags() == null) {
+            post.setTags(new HashSet<>());
+        }
         return postRepository.save(post);
     }
 
     public Post updatePost(Long id, Post post) {
         Post updatedPost = postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
         
-        if (post.getTitle().isEmpty()) {
-            throw new RuntimeException("Error: Title cannot be empty!");
-        } else if (post.getTitle() != null) {
+        if (post.getTitle() != null) {
+            if (post.getTitle().trim().isEmpty()) {
+                throw new RuntimeException("Error: Title cannot be empty!");
+            }
             updatedPost.setTitle(post.getTitle());
         }
 
-        if (post.getContent().isEmpty()) {
-            throw new RuntimeException("Error: Content cannot be empty!");
-        } else if (post.getContent() != null) {
+        if (post.getContent() != null) {
+            if (post.getContent().trim().isEmpty()) {
+                throw new RuntimeException("Error: Content cannot be empty!");
+            }
             updatedPost.setContent(updatedPost.getContent());
+        }
+
+        if (post.getCategories() != null) {
+            updatedPost.setCategories(post.getCategories());
+        }
+
+        if (post.getTags() != null) {
+            updatedPost.setTags(post.getTags());
         }
 
         return postRepository.save(updatedPost);

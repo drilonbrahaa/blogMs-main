@@ -24,11 +24,14 @@ public class UserService implements UserDetailsService {
     private PasswordEncoder encoder;
 
     public User createUser(User user) {
-        if (user.getUsername() == null || user.getUsername().isEmpty()) {
+        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
             throw new RuntimeException("Error: Username cannot be empty!");
         }
         if (userRepository.existsByUsername(user.getUsername())) {
             throw new RuntimeException("Error: Username is already taken!"); 
+        }
+        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+            throw new RuntimeException("Error: Password cannot be empty!");
         }
         user.setPassword(encoder.encode(user.getPassword()));
         if (user.getRole() == null) {
@@ -52,9 +55,17 @@ public class UserService implements UserDetailsService {
             User existingUser = userOptional.get();
             
             if (userDetails.getUsername() != null) {
+                if (userRepository.existsByUsername(userDetails.getUsername()) && !existingUser.getUsername().equals(userDetails.getUsername())) {
+                    throw new RuntimeException("Error: Username is already taken!");
+                } else if (userDetails.getUsername().trim().isEmpty()) {
+                    throw new RuntimeException("Error: Username cannot be empty!");
+                }
                 existingUser.setUsername(userDetails.getUsername());
             }
             if (userDetails.getPassword() != null) {
+                if (userDetails.getPassword().trim().isEmpty()) {
+                    throw new RuntimeException("Error: Password cannot be empty!");
+                }
                 existingUser.setPassword(encoder.encode(userDetails.getPassword()));
             }
             if (userDetails.getRole() != null) {
