@@ -21,7 +21,7 @@ public class AuthController {
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
-    
+
     @PostMapping("/signin")
     public ResponseEntity<JwtResponse> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
@@ -31,7 +31,7 @@ public class AuthController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-    
+
     @PostMapping("/signup")
     public ResponseEntity<HttpStatus> registerUser(@RequestBody SignupRequest signUpRequest) {
         try {

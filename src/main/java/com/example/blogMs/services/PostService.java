@@ -19,7 +19,7 @@ import com.example.blogMs.repositories.UserRepository;
 public class PostService {
     @Autowired
     PostRepository postRepository;
-    
+
     @Autowired
     UserRepository userRepository;
 
@@ -29,10 +29,11 @@ public class PostService {
 
     public Post createPost(Post post, String username) {
         Optional<User> user = userRepository.findByUsername(username);
-        if(!user.isPresent()) {
+        if (!user.isPresent()) {
             throw new RuntimeException("User not found");
         }
-        if (post.getTitle() == null || post.getTitle().trim().isEmpty() || post.getContent() == null || post.getContent().trim().isEmpty()) {
+        if (post.getTitle() == null || post.getTitle().trim().isEmpty() || post.getContent() == null
+                || post.getContent().trim().isEmpty()) {
             throw new RuntimeException("Error: Title and content cannot be empty!");
         }
         post.setAuthor(user.get());
@@ -47,7 +48,7 @@ public class PostService {
 
     public Post updatePost(Long id, Post post) {
         Post updatedPost = postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
-        
+
         if (post.getTitle() != null) {
             if (post.getTitle().trim().isEmpty()) {
                 throw new RuntimeException("Error: Title cannot be empty!");
@@ -72,7 +73,7 @@ public class PostService {
 
         return postRepository.save(updatedPost);
     }
-    
+
     public Boolean deletePost(Long id) {
         if (postRepository.existsById(id)) {
             postRepository.deleteById(id);
@@ -107,5 +108,5 @@ public class PostService {
         }
         return postsByTag;
     }
-        
+
 }

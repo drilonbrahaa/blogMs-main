@@ -26,8 +26,8 @@ public class PostController {
     public PostController(PostService postService) {
         this.postService = postService;
     }
-    
-    @PostMapping
+
+    @PostMapping("/author/create")
     public ResponseEntity<Post> createPost(@RequestBody Post post, @RequestParam String username) {
         try {
             postService.createPost(post, username);
@@ -43,8 +43,8 @@ public class PostController {
         List<Post> posts = postService.getAllPosts();
         return new ResponseEntity<>(posts, HttpStatus.OK);
     }
-    
-    @PutMapping("/{id}")
+
+    @PutMapping("/author/{id}")
     public ResponseEntity<Post> updatePost(@PathVariable Long id, @RequestBody Post updatedPost) {
         try {
             Post post = postService.updatePost(id, updatedPost);
@@ -54,8 +54,8 @@ public class PostController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
-    
-    @DeleteMapping("/{id}")
+
+    @DeleteMapping("/author/{id}")
     public ResponseEntity<HttpStatus> deletePost(@PathVariable Long id) {
         if (postService.deletePost(id)) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -63,7 +63,7 @@ public class PostController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-    
+
     @GetMapping("/search")
     public List<Post> searchPosts(@RequestParam String keyword) {
         return postService.searchPosts(keyword);

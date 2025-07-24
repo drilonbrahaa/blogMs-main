@@ -26,9 +26,10 @@ public class CommentController {
     public CommentController(CommentService commentService) {
         this.commentService = commentService;
     }
-    
+
     @PostMapping("/post/{postId}")
-    public ResponseEntity<Comment> addComment(@PathVariable Long postId, @RequestParam String username, @RequestBody Comment comment) {
+    public ResponseEntity<Comment> addComment(@PathVariable Long postId, @RequestParam String username,
+            @RequestBody Comment comment) {
         try {
             Comment createdComment = commentService.addComment(postId, username, comment);
             return ResponseEntity.status(201).body(createdComment);
@@ -43,7 +44,7 @@ public class CommentController {
         List<Comment> comments = commentService.getCommentsByPost(postId);
         return ResponseEntity.ok(comments);
     }
-    
+
     @PutMapping("/{commentId}")
     public ResponseEntity<Comment> editComment(@PathVariable Long commentId, @RequestBody Comment comment) {
         try {
@@ -54,7 +55,7 @@ public class CommentController {
             return ResponseEntity.badRequest().build();
         }
     }
-    
+
     @DeleteMapping("/{commentId}")
     public ResponseEntity<HttpStatus> deleteComment(@PathVariable Long commentId) {
         if (commentService.deleteComment(commentId)) {

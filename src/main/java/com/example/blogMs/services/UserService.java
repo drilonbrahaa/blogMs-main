@@ -28,7 +28,7 @@ public class UserService implements UserDetailsService {
             throw new RuntimeException("Error: Username cannot be empty!");
         }
         if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Error: Username is already taken!"); 
+            throw new RuntimeException("Error: Username is already taken!");
         }
         if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
             throw new RuntimeException("Error: Password cannot be empty!");
@@ -53,9 +53,10 @@ public class UserService implements UserDetailsService {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
             User existingUser = userOptional.get();
-            
+
             if (userDetails.getUsername() != null) {
-                if (userRepository.existsByUsername(userDetails.getUsername()) && !existingUser.getUsername().equals(userDetails.getUsername())) {
+                if (userRepository.existsByUsername(userDetails.getUsername())
+                        && !existingUser.getUsername().equals(userDetails.getUsername())) {
                     throw new RuntimeException("Error: Username is already taken!");
                 } else if (userDetails.getUsername().trim().isEmpty()) {
                     throw new RuntimeException("Error: Username cannot be empty!");
@@ -85,11 +86,13 @@ public class UserService implements UserDetailsService {
         }
         return false;
     }
-    
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-       User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-       return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority(user.getRole().name()))
-);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        return new CustomUserDetails(user);
     }
+
 }
